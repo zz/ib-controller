@@ -27,10 +27,12 @@ class ConfigureTwsApiPortTask implements Runnable{
     
     final int mPortNumber;
 	final String mReadOnlyAPI;
+	final String mBypassAPI;
     
-    ConfigureTwsApiPortTask(int portNumber, String readOnlyAPI) {
+    ConfigureTwsApiPortTask(int portNumber, String readOnlyAPI, String bypassAPI) {
         mPortNumber = portNumber;
         mReadOnlyAPI = readOnlyAPI;
+		mBypassAPI = bypassAPI;
     }
 
     @Override
@@ -40,7 +42,7 @@ class ConfigureTwsApiPortTask implements Runnable{
             
             GuiExecutor.instance().execute(new Runnable(){
                 @Override
-                public void run() {configure(configDialog, mPortNumber, mReadOnlyAPI);}
+                public void run() {configure(configDialog, mPortNumber, mReadOnlyAPI, mBypassAPI);}
             });
 
         } catch (Exception e){
@@ -48,7 +50,7 @@ class ConfigureTwsApiPortTask implements Runnable{
         }
     }
 
-    private void configure(final JDialog configDialog, final int portNumber, String readOnlyAPI) {
+    private void configure(final JDialog configDialog, final int portNumber, String readOnlyAPI, String BypassAPI) {
         try {
             if (!TwsListener.selectConfigSection(configDialog, new String[] {"API","Settings"}))
                 // older versions of TWS don't have the Settings node below the API node
@@ -93,6 +95,22 @@ class ConfigureTwsApiPortTask implements Runnable{
 					cb.setSelected(false);
 				}
 				Utils.logToConsole("TWS API Read-Only API now set to " + cb.isSelected());
+			}
+
+			if (!TwsListener.selectConfigSection(configDialog, new String[] {"API","Precautions"}))
+				// older versions of TWS don't have the Settings node below the API node
+				TwsListener.selectConfigSection(configDialog, new String[] {"API"});
+
+			JCheckBox cb = Utils.findCheckBox(configDialog, "Bypass Order Precautions for API Orders");
+			if (cb != null) {
+				Utils.logToConsole("TWS API ByPass API was set to " + cb.isSelected());
+				if("yes".equals(mBypassAPI)) {
+					cb.setSelected(true);
+				}
+				if("no".equals(mBypassAPI)) {
+					cb.setSelected(false);
+				}
+				Utils.logToConsole("TWS API ByPass API now set to " + cb.isSelected());
 			}
 
             Utils.clickButton(configDialog, "OK");

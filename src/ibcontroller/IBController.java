@@ -21,6 +21,7 @@ package ibcontroller;
 import java.awt.AWTEvent;
 import java.awt.Toolkit;
 import java.io.File;
+import java.lang.String;
 import java.text.SimpleDateFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -30,7 +31,6 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
-
 
 /**
  * @author stevek
@@ -533,8 +533,11 @@ public class IBController {
 
     private static void startTws() {
         if (Settings.getBoolean("ShowAllTrades", false)) {
-            MyCachedThreadPool.getInstance().execute(new Runnable () {
-                @Override public void run() {TwsListener.showTradesLogWindow();}
+            MyCachedThreadPool.getInstance().execute(new Runnable() {
+                @Override
+                public void run() {
+                    TwsListener.showTradesLogWindow();
+                }
             });
         }
         String[] twsArgs = new String[1];
@@ -544,10 +547,15 @@ public class IBController {
 
     private static void startTwsOrGateway() {
 		int portNumber = Settings.getInt("ForceTwsApiPort", 0);
-		String readOnlyAPI = Settings.getString("ReadOnlyAPI", "");
-		if (portNumber != 0 || (readOnlyAPI != null && readOnlyAPI.length() > 0)) {
-			MyCachedThreadPool.getInstance().execute(new ConfigureTwsApiPortTask(portNumber, readOnlyAPI));
-		}
+
+        String byPassAPI = Settings.getString("BypassAPI", "");
+        String readOnlyAPI = Settings.getString("ReadOnlyAPI", "");
+
+        if (portNumber != 0 || ((readOnlyAPI != null && readOnlyAPI.length() > 0) ||
+                (byPassAPI != null && byPassAPI.length() > 0) ) ) {
+            MyCachedThreadPool.getInstance().execute(new ConfigureTwsApiPortTask(portNumber, readOnlyAPI,
+                    byPassAPI));
+        }
 
         if (isGateway()) {
             startGateway();
